@@ -35,6 +35,6 @@ int main() {
 
 Garboman maintains a global variable `ref_stack` pointing to the stack of allocation frames. 
 Internally, both the reference stack and each allocation frame's allocation stack are implemented via lightweight append-only lists without capacity limits.
-Any failure in garboman's internal routines causes instant termination of the program via `exit(1)` since memory integrity cannot be guarateed anymore.
+Any failure in garboman's internal routines causes instant termination of the program via `exit(EXIT_FAILURE)` since memory integrity cannot be guarateed anymore.
 The lib's name is taken from the Australian slang word "garbo" short for "garbage man".
 
