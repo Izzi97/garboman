@@ -1,0 +1,81 @@
+#include <stdlib.h>
+
+typedef struct link_elem_s link_elem_t;
+typedef struct link_elem_s {
+	link_elem_t *other;
+	void *data;
+} link_elem_t;
+
+typedef struct {
+	link_elem_t *top;
+} stack_t;
+
+stack_t* stack_new();
+void stack_push(stack_t *s, void *d);
+void alloc_stack_free(stack_t *s);
+
+void garbo_track();
+void *garbo_alloc(size_t bytes);
+void garbo_free();
+
+#ifdef GARBOMAN_IMPL
+
+stack_t* stack_new() {
+	return calloc(1, sizeof(stack_t));
+}
+
+void stack_push(stack_t *s, void *d) {
+	if (!s || !d) exit(1);
+
+	link_elem_t *le = malloc(sizeof(link_elem_t));
+	if (!le) exit(1);
+
+	le->data = d;
+	le->other = s->top;
+	s->top = le;
+}
+
+void alloc_stack_free(stack_t *s) {
+	if (!s) exit(1);
+
+	link_elem_t *e = s->top, *o;
+	while (e) {
+		o = e->other;
+		free(e->data);
+		free(e);
+		e = o;
+	}
+
+	free(s);
+}
+
+stack_t *ref_stack;
+
+void garbo_track() {
+	if (!ref_stack) ref_stack = stack_new();
+	stack_push(ref_stack, stack_new());
+}
+
+void* garbo_alloc(size_t bytes) {
+	if (!ref_stack) exit(1);
+	if (!ref_stack->top) exit(1);
+
+	void *r = malloc(bytes);
+	if (!r) exit(1);
+
+	stack_push((stack_t*)ref_stack->top->data, r);
+	return r;
+}
+
+void garbo_free() {
+	if (!ref_stack) return;
+	if (!ref_stack->top) return;
+	
+	link_elem_t *o = ref_stack->top->other;
+	alloc_stack_free(ref_stack->top->data);
+	free(ref_stack->top);
+	ref_stack->top = o;
+}
+
+#endif
+

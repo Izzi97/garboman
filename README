@@ -1,6 +1,40 @@
-Procedural Object Programming System (POPS)
+garbo man – garbage-collected memory management
 
-Heap-stored / reference-based & ref-counting garbage collected object system in C.
+Tracks allocations in a stack of allocation frames.
+Each allocation frame is in turn represented as a stack holding all the allocations it is responsible for.
+A new allocation frame may be requested by calling `void garbo_track(void)`.
+A new allocation may be requested onto the current allocation frame (the one created by the last call to garbo_track) by calling `void* garbo_alloc(size_t bytes)`.
+Allocations may only be freed in bulk through dropping the entire current allocation frame by calling `void garbo_free(void)`.
 
-Shall we?
+Example:
+
+// header-only lib – request to also include implementation by defining the following symbol before inclusion
+#define GARBOMAN_IMPL
+#include "garboman.h"
+
+int main() {
+	// push first allocation frame
+	garbo_track();
+	// allocate and track some long-lived stuff on first allocation frame
+	... = garbo_alloc(sizeof(...));
+
+	// push, use and free a second allocation frame for shorter-lived allocations
+	garbo_track();
+	... = garbo_alloc(sizeof(...));
+	do_some_short_lived_calculation(...);
+	garbo_free();
+
+	// continue working on first allocation frame
+	... = garbo_alloc(sizeof(...));
+	do_stuff(...);
+	garbo_free();
+
+	// no allocation frames remain
+	return 0;
+}
+
+Garboman maintains a global variable `ref_stack` pointing to the stack of allocation frames. 
+Internally, both the reference stack and each allocation frame's allocation stack are implemented via lightweight append-only lists without capacity limits.
+Any failure in garboman's internal routines causes instant termination of the program via `exit(1)` since memory integrity cannot be guarateed anymore.
+The lib's name is taken from the Australian slang word "garbo" short for "garbage man".
 
