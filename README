@@ -1,4 +1,8 @@
-garbo man – garbage-collected memory management
+garbo man – (manually) garbage-collected memory management
+
+DISCLAIMER:
+THIS IS A HOBBY PROJECT AND THUS NOT INTENDED FOR PRODUCTION USE.
+IT IS INTENTIONALLY NOT THREAD SAFE.
 
 Tracks allocations in a stack of allocation frames.
 Each allocation frame is in turn represented as a stack holding all the allocations it is responsible for.
@@ -33,7 +37,7 @@ int main() {
 	return 0;
 }
 
-Garboman maintains a global variable `ref_stack` pointing to the stack of allocation frames. 
+Garboman maintains a global variable `ref_stack` in the process' memory space pointing to the stack of allocation frames. 
 Internally, both the reference stack and each allocation frame's allocation stack are implemented via lightweight append-only lists without capacity limits.
 Any failure in garboman's internal routines causes instant termination of the program via `exit(EXIT_FAILURE)` since memory integrity cannot be guarateed anymore.
 The lib's name is taken from the Australian slang word "garbo" short for "garbage man".
